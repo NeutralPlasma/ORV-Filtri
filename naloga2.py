@@ -13,7 +13,7 @@ def konvolucija(slika: numpy.array, jedro: np.array):
 
     # razsirimo sliko z stevilkami ki so na robu da nimamo tezav ko gre jedro
     # cez sliko ker pixel 0,0 nima pixela levo zgoraj itd....
-    slika = np.pad(slika, ((k_height // 2, k_height // 2), (k_width // 2, k_width // 2)), 'edge')
+    slika = np.pad(slika, ((k_height // 2, k_height // 2), (k_width // 2, k_width // 2)), 'constant')
     pad_x = k_height // 2
     pad_y = k_width // 2
 
@@ -46,10 +46,40 @@ def filtriraj_z_gaussovim_jedrom(slika, sigma):
     return konvolucija(slika, kernel)
 
 
+def filtriraj_sobel_vertikalno(slika):
+    sobel_x_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+    sobel_x = konvolucija(slika, sobel_x_kernel)
+
+    output = np.zeros((slika.shape[0], slika.shape[1]))
+
+
+    for i in range(sobel_x.shape[0]):
+        for j in range(sobel_x.shape[1]):
+            if sobel_x[i][j] > 150:
+                output[i][j] = sobel_x[i][j]  # 0, 255, 0
+            else:
+                output[i][j] = sobel_x[i][j]  # 0, 0, 0
+
+    #print(" ")
+    #print(sobel_x)
+
+    return sobel_x
+
+def process_sobel_image(slika):
+    sobel = filtriraj_sobel_vertikalno(slika)
+    output = np.zeros((slika.shape[0], slika.shape[1], 3))
+    for i in range(sobel.shape[0]):
+        for j in range(sobel.shape[1]):
+            if sobel[i][j] > 150:
+                output[i][j] = 0, 255, 0
+            else:
+                output[i][j] = 0, 0, 0
+    return output
+
 def filtriraj_sobel_smer(slika):
     # filter image with sobel filter
-    sobel_x_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]) * (1/9)
-    sobel_y_kernel = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]]) * (1/9)
+    sobel_x_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]) * (1 / 9)
+    sobel_y_kernel = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]]) * (1 / 9)
 
     sobel_x = konvolucija(slika, sobel_x_kernel)
     sobel_y = konvolucija(slika, sobel_y_kernel)
@@ -57,13 +87,15 @@ def filtriraj_sobel_smer(slika):
     output = np.zeros_like(slika)
 
     # join sobel x and sobel y
-    output = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
-    output *= 255.0 / output.max()
-    output = np.uint8(output)
+    # output = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
+    # output *= 255.0 / output.max()
+    # output = np.uint8(output)
+    for i in range(sobel_x.shape[0]):
+        for j in range(sobel_x.shape[1]):
+            output[i][j] = (sobel_x[i][j] ** 2) + (sobel_y[i][j] ** 2)
 
-    #for i in range(sobel_x.shape[0]):
-    #    for j in range(sobel_x.shape[1]):
-    #        output[i][j] = (sobel_x[i][j] ** 2) + (sobel_y[i][j] ** 2)
+    # output = sobel = np.sqrt(np.square(sobel_x) + np.square(sobel_y))
+
 
 
     return output
@@ -72,16 +104,14 @@ def filtriraj_sobel_smer(slika):
 if __name__ == '__main__':
     slika = cv.imread(".utils/lenna.png")
     slika = cv.cvtColor(slika, cv.COLOR_BGR2GRAY)
-    slika = filtriraj_z_gaussovim_jedrom(slika, 1)
+    slika = filtriraj_z_gaussovim_jedrom(slika, 2)
 
-    sobel_orig = filtriraj_sobel_smer(slika)
+    sobel_orig = process_sobel_image(slika)
 
     cv.imshow("GrayScale", slika)
     cv.imshow("Sobel orig", sobel_orig)
 
     sobel_x_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
-
-
 
     cv.waitKey(0)
     cv.destroyAllWindows()
