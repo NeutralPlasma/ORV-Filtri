@@ -24,8 +24,16 @@ def konvolucija(slika: numpy.array, jedro: np.array):
 
 
 def filtriraj_z_gaussovim_jedrom(slika, sigma):
-    '''Filtrira sliko z Gaussovim jedrom..'''
-    pass
+    kernel_size = int(2 * sigma) * 2 + 1
+    kernel = np.zeros((kernel_size, kernel_size))
+    k = (kernel_size / 2) - 0.5
+
+
+    for i in range(kernel_size):
+        for j in range(kernel_size):
+            kernel[i, j] = 1 / (2 * np.pi * sigma ** 2) * np.exp(-((i - k) ** 2 + (j - k) ** 2) / (2 * sigma ** 2)) # formula za gaussovo jedro
+
+    return konvolucija(slika, kernel)
 
 
 def filtriraj_sobel_smer(slika):
