@@ -37,8 +37,13 @@ def filtriraj_z_gaussovim_jedrom(slika, sigma):
 
 
 def filtriraj_sobel_smer(slika):
-    '''Filtrira sliko z Sobelovim jedrom in označi gradiente v orignalni sliki glede na ustrezen pogoj.'''
-    pass
+    # filter image with sobel filter
+    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+    sobel_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+
+    slika = konvolucija(slika, sobel_x)
+    return konvolucija(slika, sobel_y)
+
 
 
 if __name__ == '__main__':
